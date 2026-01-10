@@ -1,0 +1,16 @@
+services:
+  attacker:
+    build: 
+      context: .
+      dockerfile: Dockerfile.attacker
+    container_name: attacker
+    volumes:
+      - ./attacker:/app
+
+  client-monitor:
+    build: 
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: client-monitor
+    volumes:
+      - ./client:/app
