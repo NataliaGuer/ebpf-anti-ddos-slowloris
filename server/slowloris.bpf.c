@@ -8,31 +8,18 @@ struct conn_key {
     u64 client_port;
 };
 
-// struttura per tracciare stato connessioni
+// Struttura per tracciare stato connessioni
 struct conn_info {
     u64 start_time;      // inizio connessione
     u32 bytes_received;  // numero byte ricevuti
     u32 packets_count;   // numero pacchetti ricevuti
-    bool notified;
-};
-
-struct event_data {
-    u32 client_ip;
-    u16 client_port;
-    u16 server_port;
-    u32 bytes_received;  // numero byte ricevuti
-    u32 packets_count;   // pacchetti ricevuti
-    u64 duration_ns;     // durata connessione
 };
 
 BPF_HASH(connections, struct conn_key, struct conn_info);
 
-// utilizziamo una mappa che associa pid+tid del thread che esegue
+// Utilizziamo una mappa che associa pid+tid del thread che esegue
 // sia trace_tcp_recvmsg che trace_tcp_recvmsg_return alla connection key
 BPF_HASH(active_reads, u64, struct conn_key);
-
-// buffer per inviare eventi a user space
-BPF_PERF_OUTPUT(events);
 
 
 int trace_tcp_recvmsg(struct pt_regs *ctx, struct sock *sk) {
@@ -66,7 +53,8 @@ int trace_tcp_recvmsg(struct pt_regs *ctx, struct sock *sk) {
     struct conn_info *info = connections.lookup(&key);
 
     u64 now = bpf_ktime_get_ns();
-    // se la connessione non è stata già tracciata 
+    
+    // Se la connessione non è stata già tracciata 
     if (info == NULL) {
         struct conn_info new_conn = {};
         new_conn.start_time = now;
@@ -75,57 +63,7 @@ int trace_tcp_recvmsg(struct pt_regs *ctx, struct sock *sk) {
 
         connections.update(&key, &new_conn);
     } else {
-
-        if (info->notified) {
-            connections.delete(&key);
-            return 0;
-        }
-
         info->packets_count++;
-        u64 duration = now - info->start_time;
-
-        bool send_event = false;
-
-        u64 five_seconds = 5000000000;
-        u64 ten_seconds = 10000000000;
-
-        if (duration > five_seconds && info->packets_count < 5) {
-            send_event = true;
-        }
-
-        if (duration > five_seconds) {
-            u64 duration_sec = duration / 1000000000;
-            if (duration_sec > 0) {
-                u64 bytes_per_sec = info->bytes_received / duration_sec;
-                if (bytes_per_sec < 100) {
-                    send_event = true;
-                }
-            }
-        }
-
-        if (duration > ten_seconds) {
-            u64 duration_sec = duration / 1000000000;
-            if (info->packets_count > 0) {
-                u64 avg_interval = duration_sec / info->packets_count;
-                if (avg_interval > 3) {
-                    send_event = true;
-                }
-            }
-        }
-        
-        if (send_event) {
-            struct event_data evt = {};
-            evt.client_ip = client_ip;
-            evt.client_port = client_port;
-            evt.server_port = server_port;
-            evt.bytes_received = info->bytes_received;
-            evt.packets_count = info->packets_count;
-            evt.duration_ns = duration;
-            
-            events.perf_submit(ctx, &evt, sizeof(evt));
-            info->notified = true;
-        }
-
     }
 
     return 0;
