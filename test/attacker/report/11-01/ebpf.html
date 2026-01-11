@@ -1,0 +1,62 @@
+<!-- SlowHTTPTest Analysis chart (c) Sergey Shekyan, Victor Agababov 2011  -->
+ <html>
+   <head>
+   <style>
+     body { font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Verdana, sans-serif; background-color: transparent; color: #333; -webkit-font-smoothing: antialiased; } 
+     .slow_results {font-size: 12px; } 
+     </style>
+     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+     <script type="text/javascript">
+       google.load("visualization", "1", {packages:["corechart"]});
+       google.setOnLoadCallback(drawChart);
+       function drawChart() {
+         var data = new google.visualization.DataTable();
+         data.addColumn('string', 'Seconds');
+         data.addColumn('number', 'Closed');
+         data.addColumn('number', 'Pending');
+         data.addColumn('number', 'Connected');
+         data.addColumn('number', 'Service available');
+         data.addRows([
+['0',0,1,0,500],
+['1',0,2,50,500],
+['2',0,2,99,500],
+['3',0,2,149,500],
+['4',0,2,198,500],
+['5',0,2,248,500],
+['6',11,2,286,500],
+['7',13,2,333,500],
+['8',17,2,379,500],
+['9',25,2,420,500],
+['10',41,2,453,0],
+['11',84,0,416,0],
+['12',107,0,393,0],
+['13',118,0,382,0],
+['14',154,0,346,0],
+['15',175,0,325,0],
+['16',191,0,309,0],
+['17',234,0,266,0],
+['18',258,0,242,0],
+['19',268,0,232,0],
+['20',304,0,196,0],
+['21',325,0,175,0],
+['22',341,0,159,0],
+['23',384,0,116,500],
+['24',418,0,82,500],
+['25',424,0,76,500],
+['26',454,0,46,500],
+['27',475,0,25,500],
+['28',491,0,9,500],
+        ]);
+         var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+         chart.draw(data, {'width': 600, 'height': 360, 'title': 'Test results against http://192.168.1.47/',         hAxis: {'title': 'Seconds', 'titleTextStyle': {color: '#FF0000'}},
+         vAxis: {'title': 'Connections', 'titleTextStyle': {color: '#FF0000'}, 'viewWindowMode':'maximized'}
+     });
+     }
+     </script>
+     <title>SlowHTTPTest(tm) Connection Results</title>
+   </head>
+   <body>
+   <p><table class='slow_results' border='0'><tr><th>Test parameters</th></tr><tr><td><b>Test type</b></td><td>SLOW HEADERS</td></tr><tr><td><b>Number of connections</b></td><td>500</td></tr><tr><td><b>Verb</b></td><td>GET</td></tr><tr><td><b>Content-Length header value</b></td><td>4096</td></tr><tr><td><b>Cookie</b></td><td></td></tr><tr><td><b>Extra data max length</b></td><td>68</td></tr><tr><td><b>Interval between follow up data</b></td><td>10 seconds</td></tr><tr><td><b>Connections per seconds</b></td><td>50</td></tr><tr><td><b>Timeout for probe connection</b></td><td>5</td></tr><tr><td><b>Target test duration</b></td><td>240 seconds</td></tr><tr><td><b>Using proxy</b></td><td>no proxy  </td></tr></table></p>
+     <div id="chart_div"></div>
+   </body>
+ </html>
